@@ -1,6 +1,5 @@
 const fetch = require('node-fetch')
 const crypto = require('crypto')
-const qs = require('qs')
 const assert = require('assert')
 
 module.exports = ({ key, secret, baseURL = 'https://api.bybit.com' }) => {
@@ -8,20 +7,26 @@ module.exports = ({ key, secret, baseURL = 'https://api.bybit.com' }) => {
   assert(secret, 'api secret required.')
   assert(baseURL, 'baseURL required.')
 
-  const call = function(method, endpoint, params = {}) {
+  const call = function (method, endpoint, params = {}) {
     params.api_key = key
     params.timestamp = Date.now()
 
-    const paramString = qs.stringify(params)
+    var orderedParams = "";
+    Object.keys(params).sort().forEach(function (key) {
+      orderedParams += key + "=" + params[key] + "&";
+    });
+    orderedParams = orderedParams.substring(0, orderedParams.length - 1);
 
     params.sign = crypto
       .createHmac('sha256', secret)
-      .update(paramString)
+      .update(orderedParams)
       .digest('hex')
 
-    const signedParams = qs.stringify(params)
-
-    // console.log(signedParams)
+    var signedParams = "";
+    Object.keys(params).sort().forEach(function (key) {
+      signedParams += key + "=" + params[key] + "&";
+    });
+    signedParams = signedParams.substring(0, signedParams.length - 1);
 
     let query = ''
     let postBody = null
